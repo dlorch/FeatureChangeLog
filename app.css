@@ -1,0 +1,7 @@
+.app {
+     /* Add app styles here */
+}
+
+.rally-grid .disabled-row .x-grid-cell {
+    color: lightgray;
+}

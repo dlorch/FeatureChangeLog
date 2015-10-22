@@ -1,0 +1,7 @@
+TODO for version 2 of this App
+==============================
+
+In case of a major rewrite of this app, the following things need to be addressed:
+- Dynamical Reloading of Lookback Data instead of a fixed "fetch limit"
+- Ability to select multiple rows and automatically "group" those together who belong
+  to the same change set

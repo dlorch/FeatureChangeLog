@@ -1143,6 +1143,7 @@ Ext.define('CustomApp', {
             },
             store: this._displayDataStore,
             columnCfgs: myColumnCfg,
+            sortableColumns: false, // prevent sorting, since firstly results seem to be wrong (items collapse when a filter is applied), and also because we have a fetch limit in place and thus the result limit is arbitrary
             listeners: {
                 edit: function(editor, evt) {
                     if(evt.value != evt.originalValue) { // after editing a field, focus goes to the next row and causes this event to trigger. ignore this event.

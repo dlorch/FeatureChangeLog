@@ -355,7 +355,7 @@ Ext.define('CustomApp', {
             }
         }};
         var formattedIdRow = {dataIndex: 'FormattedID', text: 'Feature ID', _csvIgnoreRender: true, renderer: function(value, metaData, record) {
-            return '<a href="https://rally1.rallydev.com/#/search?keywords=' + value + '">' + value + '</a>';
+            return '<a href="https://rally1.rallydev.com/#/search?keywords=' + value + '" target="_blank">' + value + '</a>';
         }};
         var featureNameRow = {dataIndex: 'FeatureName', text: 'Feature Name'};
         var rallyChangeReasonRow = {dataIndex: 'RallyChangeReason', text: 'Rally Change Reason', editor: {xtype: 'rallytextfield', readOnly: true}};

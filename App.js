@@ -398,6 +398,9 @@ Ext.define('CustomApp', {
                 return '';
             },
             
+            exportRenderer: function(value, metadata, record) {
+                return record.get('Ignore');
+            },
 
             items: [{
                 icon: 'https://rally1.rallydev.com/slm/images/icon_cancel.gif',

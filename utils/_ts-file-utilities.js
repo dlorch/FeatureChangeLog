@@ -1,7 +1,7 @@
 Ext.define('Rally.technicalservices.FileUtilities', {
     singleton: true,
     saveCSVToFile:function(csv,file_name,type_object){
-            if (type_object == undefined){
+            if (type_object === undefined){
                 type_object = {type:'text/csv;charset=utf-8'};
             }
             var blob = new Blob([csv],type_object);
@@ -15,7 +15,7 @@ Ext.define('Rally.technicalservices.FileUtilities', {
         var downloadLink = document.createElement("a");
         downloadLink.download = fileNameToSaveAs;
         downloadLink.innerHTML = "Download File";
-        if (window.webkitURL != null)
+        if (window.webkitURL !== null)
         {
             // Chrome allows the link to be clicked
             // without actually adding it to the DOM.
@@ -133,7 +133,7 @@ Ext.define('Rally.technicalservices.FileUtilities', {
         }
         
         Ext.Array.each(pages, function(page) {
-            promises.push(function() { return me._loadStorePage(grid, store, columns, page, pages.length )} );
+            promises.push(function() { return me._loadStorePage(grid, store, columns, page, pages.length ); } );
         });
         
         Deft.Chain.sequence(promises).then({
@@ -238,11 +238,13 @@ Ext.define('Rally.technicalservices.FileUtilities', {
         var columns = grid.columns;
         
         Ext.Array.each(columns, function (column) {
+            display_value = null;
+            
             if (column.xtype != 'rallyrowactioncolumn') {
                 if (column.dataIndex) {
                     var column_name = column.dataIndex;
                     
-                    var display_value = record.get(column_name);
+                    display_value = record.get(column_name);
 
                     if (!column._csvIgnoreRender && column.renderer) {
                         if (column.exportRenderer) {
@@ -253,7 +255,6 @@ Ext.define('Rally.technicalservices.FileUtilities', {
                     }
                     node_values.push(display_value);
                 } else {
-                    var display_value = null;
                     if (!column._csvIgnoreRender && column.renderer) {
                         if (column.exportRenderer) {
                             display_value = column.exportRenderer(display_value, mock_meta_data, record, record, 0, 0, store, grid.getView());

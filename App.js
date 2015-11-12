@@ -42,16 +42,22 @@ Ext.define('CustomApp', {
         
         this.setLoading("Loading Data");
         
-        Deft.Chain.sequence([this._fetchLookbackData, this._fetchPreferencesData, this._fetchPreferenceModel, this._fetchUsers], this).then({ // scoping `this' to the app
+        Deft.Chain.sequence([this._fetchLookbackData, this._fetchPreferenceModel, this._fetchUsers, this._fetchPreferencesData], this).then({ // scoping `this' to the app
             success: function(data) {
                 var lookbackData = data[0];
-                var preferencesData = data[1];
-                this._preferenceModel = data[2];
-                this._usersData = data[3];
+                this._preferenceModel = data[1];
+                this._usersData = data[2];
+                var preferencesData = data[3];
                 
-                var displayData = this._mergeToDisplayData(lookbackData, preferencesData);
+                var displayData = this._prepareDisplayData(lookbackData);
                 this._displayDataStore = Ext.create('Rally.data.custom.Store', {
-                    data: displayData  
+                    data: displayData,
+                    listeners: {
+                        scope: this,
+                        load: function(store,records) {
+                            this._mergePreferencesToDisplayData(records, preferencesData);
+                        }
+                    }
                 });
                 
                 this._createViewDropdown();
@@ -184,11 +190,35 @@ Ext.define('CustomApp', {
         
         return deferred.promise;
     },
-    _mergeToDisplayData: function(lookbackData, preferencesHash) {
+    
+    _prepareDisplayData: function(lookbackData) {
         var displayData = [];
 
         Ext.Array.each(lookbackData, function(snapshot) {
-            var preferenceName = this._preferencesPrefix + snapshot.get('ObjectID') + '_' + snapshot.get('_ValidFrom');
+            displayData.push({
+                Preference: {},
+                FeatureOID: snapshot.get('ObjectID'),
+                ProjectOID: snapshot.get('Project'),
+                ValidFrom: snapshot.get('_ValidFrom'),
+                FormattedID: snapshot.get('FormattedID'),
+                FeatureName: snapshot.get('Name'),
+                User: snapshot.get('_User'),
+                RallyChangeReason: this._extractRallyChangeReason(snapshot),
+                ChangeDescription: null,
+                Ignore: false,
+                ReviewedByCoreTeam: false,
+                ReviewedByProductCouncil: false
+            });
+        }, this); // `this' scopes to the app
+        
+        return displayData;
+    },
+    
+    _mergePreferencesToDisplayData: function(records, preferencesHash) {
+        var displayData = [];
+
+        Ext.Array.each(records, function(record) {
+            var preferenceName = this._preferencesPrefix + record.get('FeatureOID') + '_' + record.get('ValidFrom');
 
             var preference = preferencesHash[preferenceName];
             if(!preference) {
@@ -201,23 +231,13 @@ Ext.define('CustomApp', {
             
             var preferenceValues = Ext.JSON.decode(preference.get('Value'));
 
-            displayData.push({
-                Preference: preference,
-                FeatureOID: snapshot.get('ObjectID'),
-                ProjectOID: snapshot.get('Project'),
-                ValidFrom: snapshot.get('_ValidFrom'),
-                FormattedID: snapshot.get('FormattedID'),
-                FeatureName: snapshot.get('Name'),
-                User: snapshot.get('_User'),
-                RallyChangeReason: this._extractRallyChangeReason(snapshot),
-                ChangeDescription: preferenceValues.ChangeDescription,
-                Ignore: preferenceValues.Ignore || false,
-                ReviewedByCoreTeam: preferenceValues.ReviewedByCoreTeam || false,
-                ReviewedByProductCouncil: preferenceValues.ReviewedByProductCouncil || false
-            });
-        }, this); // `this' scopes to the app
-        
-        return displayData;
+            record.set('Preference', preference);
+            record.set('ChangeDescription', preferenceValues.ChangeDescription);
+            record.set('Ignore', preferenceValues.Ignore || false);
+            record.set('ReviewedByCoreTeam', preferenceValues.ReviewedByCoreTeam || false);
+            record.set('ReviewedByProductCouncil', preferenceValues.ReviewedByProductCouncil || false);
+        }, this);
+        return;
     },
     _extractRallyChangeReason: function(snapshot) {
         var reason = [];
@@ -390,6 +410,7 @@ Ext.define('CustomApp', {
                     var newValue = !record.get('Ignore');
                     
                     record.set('Ignore', newValue);
+                    
                     this._updateAndSaveNewPreferenceValue(record.get('Preference'), 'Ignore', newValue);
                 },
                 scope: this
@@ -437,7 +458,7 @@ Ext.define('CustomApp', {
             xtype: 'rallygrid',
             viewConfig: {
                 getRowClass: function(record) {
-                    if(record && record.get('Ignore') == true) return 'disabled-row';
+                    if(record && record.get('Ignore') === true) return 'disabled-row';
                 }
             },
             store: this._displayDataStore,
@@ -446,7 +467,7 @@ Ext.define('CustomApp', {
             listeners: {
                 edit: function(editor, evt) {
                     if(evt.value != evt.originalValue) { // after editing a field, focus goes to the next row and causes this event to trigger. ignore this event.
-                        if(Ext.Array.contains(['ChangeDescription', 'ReviewedByCoreTeam', 'ReviewedByProductCouncil', 'Ignore'], evt.field)) { 
+                        if(Ext.Array.contains(['ChangeDescription', 'ReviewedByCoreTeam', 'ReviewedByProductCouncil', 'Ignore'], evt.field)) {
                             this._updateAndSaveNewPreferenceValue(evt.record.get('Preference'), evt.field, evt.record.get(evt.field));
                         }
                     }
@@ -483,7 +504,7 @@ Ext.define('CustomApp', {
 
         this.setLoading("Generating CSV");
         Deft.Chain.sequence([
-            function() { return Rally.technicalservices.FileUtilities.getCSVFromGrid(this,grid) } 
+            function() { return Rally.technicalservices.FileUtilities.getCSVFromGrid(this,grid); } 
         ]).then({
             scope: this,
             success: function(csv){

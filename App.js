@@ -56,12 +56,14 @@ Ext.define('CustomApp', {
                         scope: this,
                         load: function(store,records) {
                             this._mergePreferencesToDisplayData(records, preferencesData);
+                            this._createViewDropdown();
+                            this._createExportButton();
                         }
                     }
                 });
                 
-                this._createViewDropdown();
-                this._createExportButton();
+//                this._createViewDropdown();
+//                this._createExportButton();
             },
             scope: this // scope `this' in the `success' callback to the app and not the promise object
         }).always(function() { me.setLoading(false); });
@@ -433,8 +435,6 @@ Ext.define('CustomApp', {
         };
 
         this._displayDataStore.clearFilter();
-
-        console.log('view', view);
         
         if(view == 'All Items') {
             myColumnCfg = [validFromRow, userRow, formattedIdRow, featureNameRow, rallyChangeReasonRow, changeDescriptionRow, reviewByCoreTeamRow, reviewByProductCouncilRow, ignoreRow];

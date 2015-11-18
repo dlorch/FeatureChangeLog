@@ -426,20 +426,22 @@ Ext.define('CustomApp', {
             value: true
         };
         
-        var showToBeReviewed = {
+        var hasChangeDescription = {
             property: 'ChangeDescription',
             operator: '!=',
-            value: ''
+            value: null
         };
 
         this._displayDataStore.clearFilter();
 
+        console.log('view', view);
+        
         if(view == 'All Items') {
             myColumnCfg = [validFromRow, userRow, formattedIdRow, featureNameRow, rallyChangeReasonRow, changeDescriptionRow, reviewByCoreTeamRow, reviewByProductCouncilRow, ignoreRow];
         } else if(view == 'To Be Reviewed Core Team') {
             myColumnCfg = [validFromRow, userRow, formattedIdRow, featureNameRow, changeDescriptionRow, reviewByCoreTeamRow]; 
             this._displayDataStore.addFilter(showNotIgnoredRowsFilter);
-            this._displayDataStore.addFilter(showToBeReviewed);
+            this._displayDataStore.addFilter(hasChangeDescription);
             this._displayDataStore.addFilter({
                 property: 'ReviewedByCoreTeam',
                 operator: '!=',
@@ -448,7 +450,7 @@ Ext.define('CustomApp', {
         } else if(view == 'To Be Reviewed Product Council') {
             myColumnCfg = [validFromRow, userRow, formattedIdRow, featureNameRow, changeDescriptionRow, reviewByProductCouncilRow];
             this._displayDataStore.addFilter(showNotIgnoredRowsFilter);
-            this._displayDataStore.addFilter(showToBeReviewed);
+            this._displayDataStore.addFilter(hasChangeDescription);
             this._displayDataStore.addFilter({
                 property: 'ReviewedByProductCouncil',
                 operator: '!=',

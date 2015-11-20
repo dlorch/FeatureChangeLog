@@ -56,8 +56,11 @@ Ext.define('CustomApp', {
                         scope: this,
                         load: function(store,records) {
                             this._mergePreferencesToDisplayData(records, preferencesData);
-                            this._createViewDropdown();
-                            this._createExportButton();
+                            
+                            var container = this.down('#selectorsContainer');
+                            container.removeAll();
+                            this._createViewDropdown(container);
+                            this._createExportButton(container);
                         }
                     }
                 });
@@ -79,7 +82,14 @@ Ext.define('CustomApp', {
             property: '_ValidFrom',
             operator: '>',
             value: this._onlyShowValuesNewerThan
-        });
+        })
+//        .or(Ext.create('Rally.data.lookback.QueryFilter', {
+//            property: '_ValidTo',
+//            operator: '>',
+//            value: this._onlyShowValuesNewerThan
+//        }))
+        ;
+        
         var changeFilter = Rally.data.lookback.QueryFilter.or(
             [
                 {
@@ -108,6 +118,9 @@ Ext.define('CustomApp', {
         Ext.create('Rally.data.lookback.SnapshotStore', {
             listeners: {
                 load: function(store, data, success) {
+                    Ext.Array.each(data, function(datum){
+                        console.log('--', datum.get('ObjectID'), datum.get('FormattedID'), datum);
+                    });
                     deferred.resolve(data);
                 }
             },
@@ -299,8 +312,7 @@ Ext.define('CustomApp', {
         
         return result;
     },
-    _createExportButton: function() {
-        var container = this.down('#selectorsContainer');
+    _createExportButton: function(container) {
         container.add({
             xtype:'container',
             flex: 1
@@ -319,7 +331,7 @@ Ext.define('CustomApp', {
             }
         });
     },
-    _createViewDropdown: function() {
+    _createViewDropdown: function(container) {
         var views = Ext.create('Ext.data.Store', {
             fields: ['name'],
             data: [
@@ -329,7 +341,7 @@ Ext.define('CustomApp', {
             ]
         });
         
-        this.down('#selectorsContainer').add({
+        container.add({
             xtype: 'combo',
             fieldLabel: 'Filter:',
             labelWidth: 35,
